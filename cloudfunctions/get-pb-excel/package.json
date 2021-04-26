@@ -1,0 +1,14 @@
+{
+    "name": "app",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {},
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@cloudbase/node-sdk": "latest",
+        "node-xlsx": "latest",
+        "fs":"latest"
+    }
+}

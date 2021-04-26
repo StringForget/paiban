@@ -1,0 +1,66 @@
+{
+  "name": "vue",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "prestart": "npm install",
+    "dev": "npm run serve",
+    "deploy": "cloudbase framework deploy",
+    "deploy:client": "cloudbase framework deploy client",
+    "deploy:server": "cloudbase framework deploy server",
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@cloudbase/js-sdk": "latest",
+    "core-js": "^3.6.4",
+    "vue": "^2.6.11",
+    "vue-router": "latest",
+    "element-ui": "latest",
+    "xlsx": "latest"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^4.3.0",
+    "@vue/cli-plugin-eslint": "^4.3.0",
+    "@vue/cli-service": "^4.3.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.19.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-vue": "^7.5.0",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {
+      "no-unused-vars": 0
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "vue": {
+    "publicPath": "/pb/",
+    "devServer": {
+      "port": 5000
+    }
+  },
+  "description": "<a href=\"https://github.com/TencentCloudBase/cloudbase-templates\"><img src=\"https://main.qcloudimg.com/raw/9892a3212a49bdd65ba499f2da62ac23.png\"></a>",
+  "main": "babel.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
