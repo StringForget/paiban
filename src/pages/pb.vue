@@ -4,9 +4,6 @@
 			<el-form-item>
 				<el-switch size="mini" v-if="isAdmin" v-model="isCopy" active-text="查看" inactive-text="维护"> </el-switch>
 			</el-form-item>
-			<el-form-item v-show="isCopy">
-				<el-button size="mini" @click="selTable()">复制</el-button>
-			</el-form-item>
 			<el-form-item>
 				<el-select style="width: 150px;" size="mini" v-model="selSpm" multiple collapse-tags placeholder="spm组长">
 					<el-option v-for="item in spms" :key="item.spm" :label="item.spm" :value="item.spm"> </el-option>
@@ -14,8 +11,14 @@
 			</el-form-item>
 			<el-form-item>
 				<el-select style="width: 150px;" size="mini" v-model="selCode" multiple collapse-tags placeholder="班次">
-				    <el-option v-for="item in codes" :key="item.name" :label="item.name" :value="item.name"></el-option>
-				  </el-select>
+					<el-option v-for="item in codes" :key="item.name" :label="item.name" :value="item.name"></el-option>
+				</el-select>
+			</el-form-item>
+			<el-form-item>
+				<el-input style="width: 150px;" size="mini" v-model="likeName" placeholder="姓名"></el-input>
+			</el-form-item>
+			<el-form-item v-show="isCopy">
+				<el-button size="mini" @click="selTable()">复制</el-button>
 			</el-form-item>
 			<el-form-item>
 				<el-tag size="small" >上次更新：{{updateTime}}</el-tag>
@@ -90,6 +93,7 @@ export default {
 			codes:[],
 			selSpm:[],
 			selCode:[],
+			likeName:'',
 			//datas:[],
 			normWork:[],
 			//fields:[],
@@ -167,7 +171,7 @@ export default {
 		},
 		datas(){//实时计算的数据
 			let list = [];
-			let {selSpm,selCode} = this;
+			let {selSpm,selCode,likeName} = this;
 			for(let index in this.dbDatas) {
 				let user = this.dbDatas[index];
 				if((
@@ -200,10 +204,10 @@ export default {
 							isCode = true;
 						}
 					}
-					//console.log(selSpm.length>0,isSpm)
 					if(
-						((selCode.length==0 || isCode) && (selSpm.length==0 || isSpm)) ||
-						(selCode.length == 0 && selSpm.length == 0)
+						(selCode.length==0 || isCode) &&
+						(selSpm.length==0 || isSpm) &&
+						(!likeName || user.name.indexOf(likeName) > -1)
 					){
 						list.push(obj);
 					}

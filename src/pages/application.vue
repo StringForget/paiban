@@ -233,7 +233,7 @@
 				<el-form-item prop="isAdon" v-if="infoForm._id" label="p账号" :rules="[{ required: infoForm.isAdon, message: '安灯开始排班时间不为空则必填'}]">
 					<el-input v-model="infoForm.pName"></el-input>
 				</el-form-item>
-				<el-form-item v-if="infoForm._id" label="安灯排版时间">
+				<el-form-item v-if="infoForm._id" label="安灯排班时间">
 					<el-col :span="11">
 						<el-date-picker type="date" placeholder="开始日期(无排班请留空)" value-format="yyyy-MM-dd" v-model="infoForm.isAdon" style="width: 100%;"></el-date-picker>
 					</el-col>

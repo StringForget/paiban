@@ -64,7 +64,7 @@
 							:key="key.prop"
 							>
   							<div class="cell" :style="{width:key.width}">
-  								<div>{{d[key.prop]}}</div>
+  								<div>{{d[key.prop]&&d[key.prop].push?d[key.prop].join('、'):d[key.prop]}}</div>
   							</div>
   						</td>
   					</tr>
@@ -178,7 +178,7 @@ export default {
 					];
 					if(this.isNightMode){
 						child = [
-							{prop:ym+"ybList",width:'90px',label:"夜班日期"},
+							{prop:ym+"ybList",label:"夜班日期"},
 							{prop:ym+"ybDays",label:"夜班天数"}
 						]
 					}
@@ -242,10 +242,11 @@ export default {
 								obj.noun += 0.25;
 							}
 							if(this.isNightMode){//夜班统计模式
+								let mdStr = new Date(ymd).format('M月DD日');
 								if(obj[ym+'ybList']){
-									obj[ym+'ybList'] += ymd;
+									obj[ym+'ybList'].push(mdStr);
 								}else{
-									obj[ym+'ybList'] = ymd;
+									obj[ym+'ybList'] = [mdStr];
 								}
 							}
 						}
