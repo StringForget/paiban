@@ -294,7 +294,7 @@
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button size="mini" @click="jbSaveData = null">取 消</el-button>
-				<el-button size="mini" type="primary" @click="updatePbData(jbSaveData,'phone');jbSaveData = null">提 交</el-button>
+				<el-button size="mini" type="primary" @click="updatePbData(jbSaveData);jbSaveData = null">提 交</el-button>
 			</div>
 		</el-dialog>
 	</div>
@@ -424,6 +424,13 @@ export default {
 			list.map((e,i)=>{e.listNum = i+1;});
 			return list;
 		},
+		phoneObj(){
+			let obj = {};
+			this.dbDatas.map(user=>{
+				obj[user.phone] = user._id;
+			});
+			return obj;
+		},
 		outherUsers(){
 			let list = [];
 			for(let user of this.dbDatas) {
@@ -471,12 +478,14 @@ export default {
 			}
 			obj.updateTime = new Date();//更新时间
 		},
-		async updatePbData(saveObj,field){//更新数据库对象
+		async updatePbData(saveObj){//更新数据库对象
+			console.log(saveObj)
 			let load = this.$loading(),promiseArr = [];
 			for(let key in saveObj){
-				promiseArr.push(this.$db.collection('cms-gyy-user').where({[field||'_id']:key}).update(saveObj[key]));
+				promiseArr.push(this.$db.collection('cms-gyy-user').doc(key).update(saveObj[key]));
 			}
-			await Promise.all(promiseArr);//等待全部处理成功
+			let res = await Promise.all(promiseArr);//等待全部处理成功
+			console.log(res);
 			await this.getPbDate();//刷新数据
 			load.close();
 			this.$message({
@@ -490,10 +499,10 @@ export default {
 				if(!await this.$refs['pbForm'+index][0].validate().catch(()=>{1;})) return this.$message({message: `请检查必填项`,type: 'error'});
 			}
 			let obj = {pbData:{},isOvertime:{},visaFree:{}};
-			// for (let item of this.pbForm.datas) {
-			// 	if(item.mode=='加班'&&this.pbForm.pbData[item.date]=='休') obj.pbData[item.date] = `*${item.overtime}*`;//休息日加班需强制调整。
-			// 	this.setPbObj(obj,item.mode,item.date);//写入单个排班到obj
-			// }
+			for (let item of this.pbForm.datas) {
+				//if(item.mode=='加班'&&this.pbForm.pbData[item.date]=='休') obj.pbData[item.date] = `*${item.overtime}*`;//休息日加班需强制调整。
+				this.setPbObj(obj,item.mode,item.date);//写入单个排班到obj
+			}
 			await this.updatePbData({[this.pbForm._id]:obj});
 			this.dialogPbFormVisible = false;
 		},
@@ -582,18 +591,17 @@ export default {
 			let _this = this;
 			readWorkbookFromLocalFile(file.raw,async function(e){
 				let jbDatas = XLSX.utils.sheet_to_json(e.Sheets[e.SheetNames[0]]);
-				let saveData = {};
+				let saveData = {},nowMonth = new Date(_this.date_[0]).getMonth()+1;
+				console.log(jbDatas)
 				for(let obj of jbDatas){
-					if(obj['一级部门'] =='公有云技术运营服务部'){
-						for(let key in obj){
-							let phone = obj['手机号'], date = new Date('2021/'+key).format();
-							if(key.indexOf('/') > -1){
-								if(saveData[phone]){
-									saveData[phone].isOvertime[date] = true;
-								}else{
-									saveData[phone] = {isOvertime:{[date]:true},name:obj['姓名']};
-								}
-							}
+					let oldDate = new Date(obj['加班日期']);
+					oldDate.setDate(oldDate.getDate()+1)
+					let _id = _this.phoneObj[obj['手机']], date = oldDate.format();
+					if(_id && nowMonth == new Date(date).getMonth()+1){//只导入手机号存在且属于当前月份的
+						if(saveData[_id]){
+							saveData[_id].isOvertime[date] = true;
+						}else{
+							saveData[_id] = {isOvertime:{[date]:true},name:obj['姓名']};
 						}
 					}
 				}
@@ -603,7 +611,7 @@ export default {
 				var reader = new FileReader();
 				reader.onload = function(e) {
 					var data = e.target.result;
-					var workbook = XLSX.read(data, {type: 'binary'});
+					var workbook = XLSX.read(data, {type: 'binary',cellDates: true});
 					if(callback) callback(workbook);
 				};
 				reader.readAsBinaryString(file);

@@ -51,7 +51,9 @@
 							:key="key.prop"
 							>
 								<div class="cell" :style="{width:key.width}">
-									<div :title="d.visaFree[key.prop]?d[key.prop]:''">{{d.visaFree[key.prop]?'不打卡':d[key.prop]}}</div>
+									<div v-if="d.isOvertime[key.prop]" :title="d[key.prop]">休</div>
+									<div v-else-if="d.visaFree[key.prop]" :title="d[key.prop]">不打卡</div>
+									<div v-else>{{d[key.prop]}}</div>
 								</div>
 							</td>
 						</tr>
