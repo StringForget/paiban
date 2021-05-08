@@ -451,7 +451,7 @@ export default {
 			for (let u of user.data) {
 				if(u.spm == u.name && !u.userid) this.spms.push(u);
 				if(u.spm == u.name) this.outherSpms.push(u);
-				if(u.name == '李晓利'){this.normWork = u.pbData;break;}
+				if(u.name == '李晓利'){this.normWork = u.pbData;}
 			}
 		},
 		async bindSpm(){
@@ -479,7 +479,6 @@ export default {
 			obj.updateTime = new Date();//更新时间
 		},
 		async updatePbData(saveObj){//更新数据库对象
-			console.log(saveObj)
 			let load = this.$loading(),promiseArr = [];
 			for(let key in saveObj){
 				promiseArr.push(this.$db.collection('cms-gyy-user').doc(key).update(saveObj[key]));
@@ -528,7 +527,6 @@ export default {
 					}
 				}
 			}
-			console.log(saveData);
 			await this.updatePbData(saveData);//批量保存到数据库
 			this.dialogPbsFormVisible = false;
 		},
@@ -592,7 +590,6 @@ export default {
 			readWorkbookFromLocalFile(file.raw,async function(e){
 				let jbDatas = XLSX.utils.sheet_to_json(e.Sheets[e.SheetNames[0]]);
 				let saveData = {},nowMonth = new Date(_this.date_[0]).getMonth()+1;
-				console.log(jbDatas)
 				for(let obj of jbDatas){
 					let oldDate = new Date(obj['加班日期']);
 					oldDate.setDate(oldDate.getDate()+1)
