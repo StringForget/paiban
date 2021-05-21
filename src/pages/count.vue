@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-		<h-eard @setDate="date_=$event">
+		<h-eard @setDate="date_=$event" :isMonth="true">
 			<el-form-item>
 				<el-switch size="mini"
 					v-model="isNightMode"

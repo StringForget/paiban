@@ -18,7 +18,8 @@
     "vue": "^2.6.11",
     "vue-router": "latest",
     "element-ui": "latest",
-    "xlsx": "latest"
+    "xlsx": "latest",
+    "echarts": "latest"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.3.0",

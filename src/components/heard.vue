@@ -10,17 +10,7 @@
 				</el-menu>
 			</el-form-item>
 			<el-form-item>
-				<el-date-picker
-					:readonly="readOnly"
-					size="mini"
-					v-model="date_"
-					type="daterange"
-					range-separator="至"
-					start-placeholder="开始日期"
-					end-placeholder="结束日期"
-					style="width: 230px;"
-					>
-				</el-date-picker>
+				<el-date-picker :type="isMonth?'monthrange':'daterange'" :readonly="readOnly" size="mini" v-model="date_" :picker-options="isMonth?pickerOptions:''" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 230px;" > </el-date-picker>
 			</el-form-item>
 			<el-form-item>
 				<el-button-group>
@@ -43,20 +33,56 @@ export default {
 		return {
 			menu:{'/':'首页','/count':'统计页','/application':'组员信息/排班管理'},
 			date_:[],
+			pickerOptions: {
+				shortcuts: [{
+					text: '本月',
+					onClick(picker) {
+						picker.$emit('pick', [new Date(), new Date()]);
+					}
+				}, {
+					text: '今年至今',
+					onClick(picker) {
+						const end = new Date();
+						const start = new Date(new Date().getFullYear(), 0);
+						picker.$emit('pick', [start, end]);
+					}
+				}, {
+					text: '最近六个月',
+					onClick(picker) {
+						const end = new Date();
+						const start = new Date();
+						start.setMonth(start.getMonth() - 6);
+						picker.$emit('pick', [start, end]);
+					}
+				},{
+					text: '最近12个月',
+					onClick(picker) {
+						const end = new Date();
+						const start = new Date();
+						start.setMonth(start.getMonth() - 12);
+						picker.$emit('pick', [start, end]);
+					}
+				}]
+			},
 		};
 	},
 	props:{
 		readOnly:{
 			type:Boolean,
 			default:false,
+		},
+		isMonth:{
+			type:Boolean,
+			default:false,
 		}
 	},
 	async created() {
-		// if((await this.$getUser()).isAdmin){//管理员专属菜单
-		// 	this.menu['/code'] = '班次维护';
-		// }
+		if((await this.$getUser()).isSAdmin){//超级管理员专属菜单
+			this.menu['/countAndon'] = '工单指标分析(月)';
+		}
 		let nowYM = {y:new Date().getFullYear(),m:new Date().getMonth()+1};
-		this.date_ = [new Date(`${nowYM.y}/${nowYM.m}/1`),new Date(`${nowYM.y}/${nowYM.m}/${new Date(nowYM.y, nowYM.m, 0).getDate()}`)];
+		let ym = `${nowYM.y}/${nowYM.m}`;
+		this.date_ = [new Date(ym+'/1'),new Date(ym+`/${new Date(nowYM.y, nowYM.m, 0).getDate()}`)];
 	},
 	watch:{
 		date_(n){

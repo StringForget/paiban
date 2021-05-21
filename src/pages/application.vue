@@ -210,7 +210,7 @@
 			<el-form ref="infoForm" :model="infoForm" size="mini" label-width="100px">
 				<el-form-item prop="name" label="姓名" :rules="[{ required: true, message: '必填'}]">
 					<el-col :span="11">
-						<el-input v-model="infoForm.name" :readonly="infoForm._id?true:false" ></el-input>
+						<el-input v-model="infoForm.name" ></el-input>
 					</el-col>
 					<el-col class="line" :span="2" style="text-align: center;">组长</el-col>
 					<el-col :span="11">
@@ -226,6 +226,17 @@
 				</el-form-item>
 				<el-form-item prop="phone" label="电话号码" :rules="[{ required: true, message: '必填'}]">
 					<el-input v-model="infoForm.phone"></el-input>
+				</el-form-item>
+				<el-form-item label="工号部门">
+					<el-col :span="8">
+						<el-input v-model="infoForm.userNo" placeholder="工号"></el-input>
+					</el-col>
+					<el-col :span="8" >
+						<el-input v-model="infoForm.department" placeholder="部门"></el-input>
+					</el-col>
+					<el-col :span="8">
+						<el-input v-model="infoForm.post" placeholder="岗位"></el-input>
+					</el-col>
 				</el-form-item>
 				<el-form-item prop="joinDate" label="入职日期" :rules="[{ required: true, message: '必填'}]">
 					<el-date-picker type="date" placeholder="选择日期" value-format="yyyy-MM-dd" v-model="infoForm.joinDate" style="width: 100%;"></el-date-picker>
@@ -287,7 +298,7 @@
 		</el-dialog>
 		
 		<el-dialog title="加班数据导入确认" :visible.sync="jbSaveData">
-			<el-form ref="infoForm" :model="infoForm" size="mini" label-width="100px" style="max-height: 300px;overflow: auto;">
+			<el-form size="mini" label-width="100px" style="max-height: 300px;overflow: auto;">
 				<el-form-item v-for="obj,key in jbSaveData" :key="key" :label="obj.name" style="margin-bottom: 3px;">
 					<el-tag size="mini" style="margin-right: 5px;" v-for="val,date in obj.isOvertime" :key="date">{{date}}</el-tag>
 				</el-form-item>
@@ -451,7 +462,7 @@ export default {
 			for (let u of user.data) {
 				if(u.spm == u.name && !u.userid) this.spms.push(u);
 				if(u.spm == u.name) this.outherSpms.push(u);
-				if(u.name == '李晓利'){this.normWork = u.pbData;}
+				if(u.name == '李晓利') this.normWork = u.pbData;
 			}
 		},
 		async bindSpm(){

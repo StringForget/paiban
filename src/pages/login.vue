@@ -36,7 +36,7 @@ export default {
 				try{
 					state = await this.$auth.signInWithUsernameAndPassword(username, password);
 				}catch(e){
-					console.log(e);
+					console.log(e.toString());
 				}
 				if(state.user){
 					this.$router.push('/');
