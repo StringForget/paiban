@@ -1,10 +1,6 @@
 <template>
   <div id="app">
 		<h-eard @setDate="date_=$event" :isMonth="true">
-			<el-form-item>
-				<el-switch size="mini" v-model="isEchats" active-text="图表统计模式" inactive-text="表格分析模式">
-				</el-switch>
-			</el-form-item>
 			<!-- <el-form-item>
 				<el-select size="mini" v-model="selProduct" multiple collapse-tags placeholder="负责产品">
 					<el-option v-for="v,key in products" :key="key" :label="key" :value="key"> </el-option>
@@ -19,48 +15,70 @@
 				</el-upload>
 			</el-form-item>
 		</h-eard>
-  	<div class="content">
-			<div v-show="!isEchats" style="overflow: visible;width: max-content;width: max-content;max-width: max-content;height: max-content;" class="el-table el-table--fit el-table--border el-table--scrollable-y el-table--enable-row-transition el-table--mini" >
-				<table ref="table1" cellspacing="0" cellpadding="0" border="0" class="el-table__header">
-					<thead class="is-group">
-						<tr class="">
-							<th class="is-center" style="position:sticky;z-index: 10;top:40px"> <div class="cell" >序号</div> </th>
-							<th class="is-center" style="position:sticky;z-index: 10;top:40px"> <div class="cell" >负责产品</div> </th>
-							<th class="is-center" style="position:sticky;z-index: 10;top:40px"> <div class="cell" >姓名</div> </th>
-							<th v-for="col,index in cols" :key="index" style="position:sticky;z-index: 10;top:40px" class=" is-center is-leaf">
-								<div class="cell">{{col}}</div>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="d,index in datas" class="el-table__row" :key="index">
-							<td class="is-center"> <div class="cell" > {{index++}} </div> </td>
-							<td class="is-center"> <div class="cell" > {{d.product||''}} </div> </td>
-							<td class="is-center"> <div class="cell" > {{d.name}} </div> </td>
-							<td v-for="col,index in cols" class="is-center" :key="index" >
-								<div class="cell" >
-									{{/.*[率|比|度].*/.test(col)?(d[col]*100).toFixed(2)+'%':Math.round(d[col] * 100)/100}}
+		<div class="content">
+			<el-tabs v-model="activeName" @tab-click="handleClick">
+				<el-tab-pane label="详情分析" name="tab1">
+					<div  class="el-table el-table--fit el-table--border el-table--scrollable-y el-table--enable-row-transition el-table--mini" >
+						<table ref="table1" cellspacing="0" cellpadding="0" border="0" class="el-table__header">
+							<thead class="is-group">
+								<tr class="">
+									<th class="is-center" > <div class="cell" >序号</div> </th>
+									<th class="is-center" > <div class="cell" >负责产品</div> </th>
+									<th class="is-center" > <div class="cell" >姓名</div> </th>
+									<th v-for="col,index in cols" :key="index" class=" is-center is-leaf">
+										<div class="cell">{{col}}</div>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="d,index in datas" class="el-table__row" :key="index">
+									<td class="is-center"> <div class="cell" > {{index++}} </div> </td>
+									<td class="is-center"> <div class="cell" > {{d.product||''}} </div> </td>
+									<td class="is-center"> <div class="cell" > {{d.name}} </div> </td>
+									<td v-for="col,index in cols" class="is-center" :key="index" >
+										<div class="cell" >
+											{{/.*[率|比|度].*/.test(col)?(d[col]*100).toFixed(2)+'%':Math.round(d[col] * 100)/100}}
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</el-tab-pane>
+				<el-tab-pane label="图表分析" name="tab2">
+					<div>
+						<el-row>
+							<el-col :span="24"><div ref="echats1" style="height: 600px;"></div></el-col>
+						</el-row>
+						<el-row>
+							<el-col :span="24"><div ref="echats2" style="height: 500px;"></div></el-col>
+						</el-row>
+					</div>
+					<el-row>
+						<el-col :span="12"><div ref="echats3" style="height: 500px; width: 100%;"></div></el-col>
+						<el-col :span="12"><div ref="echats4" style="height: 500px; width: 100%;"></div></el-col>
+					</el-row>
+				</el-tab-pane>
+				<el-tab-pane label="工单TOP榜" name="tab3">
+					<el-row :gutter="20">
+						<el-col v-for="(item,index) in topCols" :key="index" :span="8">
+							<el-card class="box-card" style="margin-bottom: 20px;">
+								<div slot="header" class="clearfix">
+								    <span style="font-weight: 800;">{{item}}</span>
+								    <label style="float: right; color: #888;">工单量前50%数据</label>
+								  </div>
+								<div v-for="user,i in getDataByTitle(item)" :key="i" class="top-card">
+									<p><span class="ranking">{{i+1}}</span><span class="name">{{user.name}}</span><span class="value">{{/.*[率|比|度].*/.test(item)?(user[item]*100).toFixed(2)+'%':Math.round(user[item] * 100)/100}}</span></p>
 								</div>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div v-show="isEchats" style="margin-top: 40px;">
-				<div>
-					<el-row>
-						<el-col :span="24"><div ref="echats1" style="height: 600px; width: 100%;"></div></el-col>
+							</el-card>
+						</el-col>
 					</el-row>
-					<el-row>
-						<el-col :span="24"><div ref="echats2" style="height: 500px; width: 100%;"></div></el-col>
-					</el-row>
-				</div>
-				<el-row>
-				  <el-col :span="12"><div ref="echats3" style="height: 500px; width: 100%;"></div></el-col>
-				  <el-col :span="12"><div ref="echats4" style="height: 500px; width: 100%;"></div></el-col>
-				</el-row>
-			</div>
-  	</div>
+				</el-tab-pane>
+				<el-tab-pane label="员工分析" name="tab4">
+					有待开发...
+				</el-tab-pane>
+			</el-tabs>
+		</div>
 		<el-dialog title="安灯数据导入确认" :visible.sync="andonData">
 			<el-form size="mini" label-width="100px" style="max-height: 300px;overflow: auto;">
 				<el-form-item label="数据导入月份">
@@ -84,7 +102,9 @@ export default {
 	components:{'h-eard':Heard},
 	data(){
 		return {
+			activeName:'tab1',
 			cols:["服务差评率","反馈率","服务态度差占比","技术能力弱占比","解决时效差占比","工单12h闭环率","80分位工单总时长(h)","结单量","满意度(汇总)","满意度(MC)","满意度(KA)","工单总时长(h)","90分位总对外回复次数","专项处理时长(MC)","专项处理时长(KA)","专项处理时长(汇总)","透传量","透传率","透传拒绝率"],
+			topCols:["服务差评率","反馈率","工单12h闭环率","80分位工单总时长(h)","结单量","满意度(汇总)","工单总时长(h)","90分位总对外回复次数","专项处理时长(汇总)"],
 			date_:[],//查询日期范围
 			spms:[],
 			selSpm:'',
@@ -95,7 +115,7 @@ export default {
 			saveMonth:'',
 			products:{},
 			selProduct:[],
-			isEchats:true,//默认表格模式
+			echatsObj:{},//echats
 		}
 	},
 	async created() {
@@ -182,18 +202,31 @@ export default {
 				obj[user.pName] = user._id;
 			});
 			return obj;
-		},
-		changeEchats(){
-			const {dbDatas,_date} = this;
-			return {dbDatas,_date};
 		}
 	},
 	watch: {
 		sDateList(){
-			this.echatsData();
+			this.echatsData();//
 		}
 	},
 	methods: {
+		getDataByTitle(title){
+			let data = this.datas.slice(1,parseInt(this.datas.length/2));
+			let type = /.*[差|弱|时长|透传].*/.test(title)?-1:1;
+			data.sort((a,b)=>{
+				return (b[title] - a[title])*type
+			});
+			return data.slice(0,5);
+		},
+		handleClick(tab, event) {
+			if(tab.name == 'tab2'){//需要加载图表
+				this.$nextTick(()=>{
+					for (let mycharts in this.echatsObj) {
+						this.echatsObj[mycharts].resize();
+					}
+				})
+			}
+		},
 		async importJb(file){
 			let _this = this;
 			readWorkbookFromLocalFile(file.raw,async function(e){
@@ -316,11 +349,17 @@ export default {
 					}
 				}
 			}
-			echarts.init(this.$refs.echats1).setOption(this.getTableEchatsData('产品工单量分布图',cpList,cpObj));
-			echarts.init(this.$refs.echats2).setOption(this.getTableEchatsData('产品人数折线图',cpList,ppObj,'line'));
+			this.echatsObj.echats1 = echarts.init(this.$refs.echats1);
+			this.echatsObj.echats1.setOption(this.getTableEchatsData('产品工单量分布图',cpList,cpObj));
 			
-			echarts.init(this.$refs.echats3).setOption(this.getPicEchatsData('产品工单分布图(总)',cpList,'工单量',cpObj));
-			echarts.init(this.$refs.echats4).setOption(this.getPicEchatsData('处理人数分布图(总)',cpList,'处理人',ppObj));
+			this.echatsObj.echats2 = echarts.init(this.$refs.echats2);
+			this.echatsObj.echats2.setOption(this.getTableEchatsData('产品人数折线图',cpList,ppObj,'line'));
+			
+			this.echatsObj.echats3 = echarts.init(this.$refs.echats3);
+			this.echatsObj.echats3.setOption(this.getPicEchatsData('产品工单分布图(总)',cpList,'工单量',cpObj));
+			
+			this.echatsObj.echats4 = echarts.init(this.$refs.echats4);
+			this.echatsObj.echats4.setOption(this.getPicEchatsData('处理人数分布图(总)',cpList,'处理人',ppObj));
 		}
 	},
 };
@@ -330,8 +369,8 @@ export default {
 <style scoped>
 	td.pb-val:hover {cursor: pointer;background: #03A9F4!important;color: #fff;}
 	.pb-list .el-radio {margin-right: 20px;margin-bottom: 20px;margin-left: 0!important;width: 80px;}
-	.header{position: fixed;left: 5px;width: 100%;background: #fff;z-index: 10;}
-	.content{padding-top: 39px;}
+	.header{position: fixed;left: 5px;width: 100%;background: #fff;z-index: 10;height: 40px;overflow: hidden;}
+	.content{padding: 40px 10px 10px;}
 	.dialog-pb .el-dialog__body {padding: 5px 20px;padding-bottom: 0;}
 	.dialog-pb .el-dialog__footer {padding-top: 0;padding-bottom: 10px;}
 	.dialog-pb .el-divider--horizontal{margin: 5px 0;}
@@ -340,4 +379,6 @@ export default {
 	.sles-div .el-radio{margin-right: 15px;}
 	td{background: #fff;}
 	.el-form-item{margin-bottom: 0;}
+	.top-card .ranking {display: inline-block;background: #ff9800;border-radius: 50%;text-align: center;width: 22px;margin-right: 10px;}
+	.top-card .value {float: right;}
 </style>
