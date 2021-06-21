@@ -66,15 +66,16 @@
 		</h-eard>
 		<div class="content">
 			<el-table :data="datas" size="mini" border style="width: 100%">
-				<el-table-column prop="name" align="center" width="80" label="姓名">
+				<el-table-column prop="name" align="center" width="80" label="姓名"></el-table-column>
+				<el-table-column prop="phone" align="center" width="120" label="电话"></el-table-column>
+				<el-table-column prop="pName" align="center" width="120" label="p账号"></el-table-column>
+				<el-table-column prop="pName" align="center" width="50" label="排班">
 					<template slot-scope="scope">
-						<el-tooltip effect="dark" :content="'组长：'+scope.row.spm" placement="top">
-							<span >{{scope.row.name}}</span>
+						<el-tooltip v-if="scope.row.isAdon" effect="dark" :content="scope.row.isAdon" placement="top">
+							<i class="el-icon-success" style="font-size: 20px;color: #03a9f4;"></i>
 						</el-tooltip>
 					</template>
 				</el-table-column>
-				<el-table-column prop="phone" align="center" width="120" label="电话"> </el-table-column>
-				<el-table-column prop="pName" align="center" width="120" label="p账号"> </el-table-column>
 				<!-- <el-table-column prop="isAdon" align="center" width="100" label="安灯排班时间"> </el-table-column> -->
 				<el-table-column prop="isJob" align="center" width="80" label="在职状态">
 					<template slot-scope="scope">
@@ -105,6 +106,7 @@
 						<el-tag size="small" type="danger" v-else-if="scope.row.sum<0">需补班{{scope.row.sum*-1}}天</el-tag>
 					</template>
 				</el-table-column>
+				<el-table-column prop="spm" align="center" width="80" label="组长"></el-table-column>
 				<el-table-column fixed="right" min-width="310" align="left" label="操作">
 					<template slot-scope="scope" v-if="isAdmin || scope.row.spm == nowSpm">
 						<el-tooltip class="item" effect="dark" content="可以单独查看该组员的排班情况。" placement="top">
@@ -170,10 +172,10 @@
 				<el-button size="mini" type="primary" @click="savePbChange">提 交</el-button>
 			</div>
 		</el-dialog>
-		<el-dialog title="批量排班调整" width="900px" :visible.sync="dialogPbsFormVisible">
+		<el-dialog title="批量排班调整" width="1020px" :visible.sync="dialogPbsFormVisible">
 			<el-form v-for="form,index in pbsForm" :ref="'pbsForm'+index" :key="index" :inline="true" :model="form" size="mini">
 				<el-form-item prop="_ids" label="调整员工" :rules="[{ required: true, message: '调整员工不能为空'}]">
-					<el-select v-model="form._ids" placeholder="请选择调整员工" filterable multiple collapse-tags style="width: 200px;" >
+					<el-select v-model="form._ids" placeholder="请选择调整员工" filterable multiple collapse-tags style="width: 160px;" >
 						<template v-for="item,i in dbDatas">
 							<el-option  v-if="isAdmin||item.spm==nowSpm" :key="i" :label="item.name" :value="item._id"> </el-option>
 						</template>
@@ -182,10 +184,14 @@
 				<el-form-item prop="dates" label="调整日期" :rules="[{ required: true, message: '调整日期不能为空'}]">
 					<el-date-picker v-model="form.dates" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 230px;"></el-date-picker>
 				</el-form-item>
+				<el-form-item prop="rest" label="周末排休">
+					<el-switch v-model="form.rest"> </el-switch>
+				</el-form-item>
 				<el-form-item prop="value" label="调整班次" :rules="[{ required: true, message: '调整班次不能为空'}]">
 					<el-select v-model="form.value" placeholder="请选择调整班次" filterable style="width: 120px;" >
 						<el-option label="清理班次" value="清理"></el-option>
 						<el-option label="请假/调休" value="事"></el-option>
+						<el-option v-if="isAdmin" label="不打卡" value="不打卡"></el-option>
 						<!-- <el-option label="加班" value="加班"></el-option> 批量排班调整暂不支持加班-->
 						<template v-for="item in codes">
 							<el-option v-if="item.name!='不打卡'&&item.name!='事'" :key="item.name" :value="item.name">
@@ -200,7 +206,7 @@
 					<el-button type="danger" icon="el-icon-minus" @click="pbsForm.splice(index,1)" circle ></el-button>
 				</el-form-item>
 			</el-form>
-			<el-button size="mini" @click="pbsForm.push({_ids:[],dates:[],value:''})" icon="el-icon-circle-plus-outline" style="width: 100%;text-align: center;">增加</el-button>
+			<el-button size="mini" @click="pbsForm.push({_ids:[],dates:[],value:'',rest:false})" icon="el-icon-circle-plus-outline" style="width: 100%;text-align: center;">增加</el-button>
 			<div slot="footer" class="dialog-footer">
 				<el-button size="mini" @click="dialogPbsFormVisible = false">取 消</el-button>
 				<el-button size="mini" type="primary" @click="savePbsChange">提 交</el-button>
@@ -238,6 +244,28 @@
 						<el-input v-model="infoForm.post" placeholder="岗位"></el-input>
 					</el-col>
 				</el-form-item>
+				<el-form-item label="导师组织">
+					<el-col :span="8">
+						<el-input v-model="infoForm.mentor" placeholder="导师"></el-input>
+					</el-col>
+					<el-col :span="8" >
+						<el-input v-model="infoForm.mentorOrg" placeholder="导师所在组织"></el-input>
+					</el-col>
+					<el-col :span="8">
+						<el-input v-model="infoForm.scoreMentor" placeholder="绩效导师"></el-input>
+					</el-col>
+				</el-form-item>
+				<el-form-item label="办公信息">
+					<el-col :span="8">
+						<el-input v-model="infoForm.workLocation" placeholder="办公地点"></el-input>
+					</el-col>
+					<el-col :span="8" >
+						<el-input v-model="infoForm.workEmail" placeholder="办公邮箱"></el-input>
+					</el-col>
+					<el-col :span="8">
+						<el-input v-model="infoForm.workWx" placeholder="办公微信"></el-input>
+					</el-col>
+				</el-form-item>
 				<el-form-item prop="joinDate" label="入职日期" :rules="[{ required: true, message: '必填'}]">
 					<el-date-picker type="date" placeholder="选择日期" value-format="yyyy-MM-dd" v-model="infoForm.joinDate" style="width: 100%;"></el-date-picker>
 				</el-form-item>
@@ -262,9 +290,9 @@
 				<el-form-item label="离职日期" prop="outDate" :rules="[{ required: true, message: '必填'}]" v-if="!infoForm.isJob">
 					<el-date-picker type="date" placeholder="选择日期" value-format="yyyy-MM-dd" v-model="infoForm.outDate" style="width: 100%;"></el-date-picker>
 				</el-form-item>
-				<el-form-item label="自定义排班" v-if="isAdmin||nowSpm=='尚晨'">
+				<el-form-item label="固定排班">
 					<el-col :span="7">
-						<el-date-picker type="date" placeholder="开始日期(不用则留空)" value-format="yyyy-MM-dd" v-model="infoForm.zdyPb.start" style="width: 100%;"></el-date-picker>
+						<el-date-picker type="date" placeholder="开始日期(不设则留空)" value-format="yyyy-MM-dd" v-model="infoForm.zdyPb.start" style="width: 100%;"></el-date-picker>
 					</el-col>
 					<el-col class="line" :span="1" style="text-align: center;">至</el-col>
 					<el-col :span="7">
@@ -272,8 +300,15 @@
 					</el-col>
 					<el-col class="line" :span="2" style="text-align: center;">班次</el-col>
 					<el-col :span="7">
-						<el-select v-model="infoForm.zdyPb.value" placeholder="自定义班次">
-							<el-option v-for="item in codes" :key="item.name" :label="item.name" :value="item.name"></el-option>
+						<el-select v-model="infoForm.zdyPb.value" placeholder="固定班次">
+							<el-option v-if="isAdmin" label="不打卡" value="不打卡"></el-option>
+							<template v-for="item in codes">
+								<el-option v-if="item.name!='不打卡'&&item.name!='事'" :key="item.name" :value="item.name">
+									<el-tooltip effect="dark" :content="item.dateStr" placement="right">
+										<span style="display: block;">{{item.name}}</span>
+									</el-tooltip>
+								</el-option>
+							</template>
 						</el-select>
 					</el-col>
 				</el-form-item>
@@ -334,7 +369,7 @@ export default {
 			dialogPbFormVisible:false,//排班调整弹出组件是否显示
 			pbForm:{_id:'',name:'',sum:0,pbData:{},datas:[]},//排班调整表单
 			dialogInfoFormVisible:false,//排班调整弹出组件是否显示
-			infoForm:{_id:'',name:'',spm:'',phone:'',pName:'',isAdon:'',andonDateOut:'',isJob:'',joinDate:'',outDate:'',zdyPb:{}},//组员信息调整表单
+			infoForm:{_id:'',name:'',spm:'',phone:'',pName:'',isAdon:'',andonDateOut:'',isJob:'',userNo:'',department:'',post:'',joinDate:'',outDate:'',zdyPb:{}},//组员信息调整表单
 			dialogPbsFormVisible:false,
 			pbsForm:[],//批量修改排班数据
 			dialogPbListVisible:false,//组员排班数据是否显示
@@ -445,7 +480,7 @@ export default {
 		outherUsers(){
 			let list = [];
 			for(let user of this.dbDatas) {
-				if(!user.spm && user.name!='李晓利')list.push(user);
+				if(!user.spm && user.isJob)list.push(user);
 			}
 			return list;
 		}
@@ -459,11 +494,13 @@ export default {
 		async getPbDate(){
 			let user = await this.$db.collection('cms-gyy-user').limit(1000).get();
 			this.dbDatas = user.data;
+			let spms=[],outherSpms=[];
 			for (let u of user.data) {
-				if(u.spm == u.name && !u.userid) this.spms.push(u);
-				if(u.spm == u.name) this.outherSpms.push(u);
+				if(u.spm == u.name && !u.userid) spms.push(u);
+				if(u.spm == u.name) outherSpms.push(u);
 				if(u.name == '李晓利') this.normWork = u.pbData;
 			}
+			this.spms = spms;this.outherSpms = outherSpms;
 		},
 		async bindSpm(){
 			if(this.selSpm){
@@ -523,9 +560,10 @@ export default {
 				let form = this.pbsForm[index]
 				if(!await this.$refs['pbsForm'+index][0].validate().catch(()=>{1;})) return this.$message({message: `请检查必填项`,type: 'error'});
 				
-				let obj = {pbData:{},isOvertime:{}},nowDate = new Date(form.dates[0]);//new一个新的时间对象，避免数据跟着变
+				let obj = {pbData:{},isOvertime:{},visaFree:{}},nowDate = new Date(form.dates[0]);//new一个新的时间对象，避免数据跟着变
 				while(nowDate <= form.dates[1]){//对日期进行循环
-					this.setPbObj(obj,form.value,nowDate.format());//写入单个排班到obj
+					let value = (form.rest && this.normWork[nowDate.format()].replace(/\*/g,'') == '休')?'休':form.value;//是否开节假日排休
+					this.setPbObj(obj,value,nowDate.format());//写入单个排班到obj
 					nowDate.setDate(nowDate.getDate()+1);//加一天
 				}
 				for (let _id of form._ids) {//遍历用户写入日期班次情况

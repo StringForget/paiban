@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-		<h-eard @setDate="date_=$event" :isMonth="true">
+		<h-eard @setDate="date_=$event">
 			<el-form-item>
 				<el-switch size="mini"
 					v-model="isNightMode"
@@ -162,7 +162,7 @@ export default {
 				{label: '序',prop:'listNum',width:'40px',left:'0px',fixed:true},
 				{label: '日期',width:'130px',left:'41px',fixed:true,child:[
 					{prop: 'name',fixed:true,width:'60px',left:'41px',label: '姓名'},
-					{prop: 'isJob',fixed:true,width:'70px',left:'102px',label: '是否在职'},
+					{prop: this.isNightMode?'userNo':'isJob',fixed:true,width:'70px',left:'102px',label: this.isNightMode?'工号':'是否在职'},
 				]},
 			];
 			let ym;
@@ -217,6 +217,7 @@ export default {
 					name:user.name,
 					phone:user.phone,
 					isJob:user.isJob?'在职':'离职',
+					userNo:user.userNo,
 					index:index-0+1,
 					noun:user.noun||0,
 					reason:user.reason||[],

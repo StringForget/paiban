@@ -87,7 +87,7 @@ export default {
 	components:{'h-eard':Heard},
 	data(){
 		return {
-			weeks: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+			weeks: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
 			tableHeight:document.body.clientHeight - 53,
 			date_:[],//查询日期范围
 			dbDatas:[],
@@ -142,16 +142,21 @@ export default {
 			return list;
 		},
 		fields(){//实时计算的表头
-			let list = [
-				//{label: '序',prop:'index',width:'40px',left:'0px',fixed:true},
-				{label: '日期',width:'250px',left:'0px',fixed:true,child:[
-					{prop: 'phone',label: '电话',fixed:true,width:'110px',left:'0px'},
+			let list = [{
+				label: '日期',width:'250px',left:'0px',fixed:true,child:[
+					{prop: 'phone',label: '手机',fixed:true,width:'110px',left:'0px'},
 					{prop: 'name',label: '姓名',fixed:true,width:'80px',left:'111.5px'},
-					{prop: 'isJob',label: '是否在职',fixed:true,width:'70px',left:'193px'},
-					]},
-				];
+					{prop: 'isJob',label: '在职状态',fixed:true,width:'70px',left:'193px'},
+				]},{
+				label: '',child:[
+					{prop: 'userNo',label: '工号',width:'80px'},
+					{prop: 'department',label: '部门',width:'150px'},
+					{prop: 'post',label: '岗位',width:'120px'},
+					{prop: 'joinDate',label: '入职时间',width:'100px'},
+				]}
+			];
 			for (let ymd of this.sDateList) {
-				list.push({label: this.isCopy?ymd.replace(/-/g,'/'):ymd.substr(5),child:[{prop: ymd,width:this.isCopy?'':'60px',className:this.isCopy?'':'pb-val',label:this.weeks[new Date(ymd.replace(/-/g,'/')).getDay()]}]});
+				list.push({label: this.isCopy?ymd:ymd.substr(5),child:[{prop: ymd,width:this.isCopy?'':'60px',className:this.isCopy?'':'pb-val',label:this.weeks[new Date(ymd.replace(/-/g,'/')).getDay()]}]});
 			}
 			for(let code of this.selCode){
 				list.push({label:code,prop:code,width:'60px'});
@@ -177,15 +182,20 @@ export default {
 			for(let index in this.dbDatas) {
 				let user = this.dbDatas[index];
 				if((
-					new Date(user.joinDate) <= new Date(this.date_[1])//入职时间小于等于查询结束时间
+					new Date(user.joinDate) <= new Date(this.date_[1].format())//入职时间小于等于查询结束时间
 				)&&(
-					user.isJob || new Date(user.outDate) >= new Date(this.date_[0]) //在职，或者离职日期大于等于查询开始日期
+					user.isJob || new Date(user.outDate) >= new Date(this.date_[0].format()) //在职，或者离职日期大于等于查询开始日期
 				)){
 					let obj = {
 						_id:user._id,
 						name:user.name,
 						phone:user.phone,
+						pName:user.pName,
 						isJob:user.isJob?'在职':'离职',
+						userNo:user.userNo,
+						department:user.department,
+						post:user.post,
+						joinDate:user.joinDate,
 						index:index-0+1,
 						isOvertime:user.isOvertime||{},
 						visaFree:user.visaFree||{}
@@ -213,6 +223,8 @@ export default {
 					){
 						list.push(obj);
 					}
+				}else{
+					console.log(user,user.joinDate,this.date_[1],new Date(user.joinDate) <= new Date(this.date_[1].format()))
 				}
 			}
 			return list;
