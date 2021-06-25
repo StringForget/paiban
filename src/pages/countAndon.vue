@@ -6,9 +6,9 @@
 					<el-option v-for="v,key in products" :key="key" :label="key" :value="key"> </el-option>
 				</el-select>
 			</el-form-item> -->
-			<el-form-item>
+			<!-- <el-form-item>
 				<el-button size="mini" @click="selTable()">复制</el-button>
-			</el-form-item>
+			</el-form-item> -->
 			<el-form-item v-if="isAdmin">
 				<el-upload action="/" :show-file-list="false" :auto-upload="false" :on-change="importJb">
 					<el-button size="mini" type="primary">导入安灯数据</el-button>
@@ -18,7 +18,17 @@
 		<div class="content">
 			<el-tabs v-model="activeName" @tab-click="handleClick">
 				<el-tab-pane label="详情分析" name="tab1">
-					<div  class="el-table el-table--fit el-table--border el-table--scrollable-y el-table--enable-row-transition el-table--mini" >
+					<el-table :data="datas" size="mini" border style="width: 100%;" max-height="600" :default-sort = "{prop: '结单量', order: 'descending'}">
+						<el-table-column type="index" width="50" label="序号"></el-table-column>
+						<el-table-column prop="name" align="center" width="80" label="姓名"></el-table-column>
+						<el-table-column prop="product" align="center" width="120" sortable label="负责产品"></el-table-column>
+						<el-table-column v-for="col,i in cols" :key="i" :prop="col" sortable align="center" :label="col">
+							<template slot-scope="scope">
+								{{/.*[率|比|度].*/.test(col)?(scope.row[col]*100).toFixed(2)+'%':Math.round(scope.row[col] * 100)/100}}
+							</template>
+						</el-table-column>
+					</el-table>
+					<!-- <div  class="el-table el-table--fit el-table--border el-table--scrollable-y el-table--enable-row-transition el-table--mini" >
 						<table ref="table1" cellspacing="0" cellpadding="0" border="0" class="el-table__header">
 							<thead class="is-group">
 								<tr class="">
@@ -43,7 +53,7 @@
 								</tr>
 							</tbody>
 						</table>
-					</div>
+					</div> -->
 				</el-tab-pane>
 				<el-tab-pane label="图表分析" name="tab2">
 					<div>
@@ -74,8 +84,44 @@
 						</el-col>
 					</el-row>
 				</el-tab-pane>
-				<el-tab-pane label="员工分析" name="tab4">
-					有待开发...
+				<el-tab-pane label="队列数据" name="tab4">
+					<el-row :gutter="20">
+						<el-col :span="24">
+							<el-card class="box-card" style="margin-bottom: 20px;">
+								<div slot="header" class="clearfix">
+									<span style="font-weight: 800;">{{selProduct}}队列数据分析</span>
+									<label style="float: right;">
+										<el-select size="mini" v-model="selProduct" placeholder="负责产品">
+											<template v-for="v,key in products" >
+												<el-option :key="key" v-if="key!='其它'" :label="key" :value="key"> </el-option>
+											</template>
+											<el-option label="其它产品" value="其它"> </el-option>
+										</el-select>
+									</label>
+								</div>
+								<el-row :gutter="20" class="top-card">
+									<el-col :span="8">
+										<el-card shadow="never">
+											<div ref="echatsp1" style="height: 400px;"></div>
+										</el-card>
+									</el-col>
+									<el-col :span="8">
+										<el-card shadow="never">
+											<div ref="echatsp2" style="height: 400px;"></div>
+										</el-card>
+									</el-col>
+									<el-col :span="8">
+										<el-card shadow="never">
+											<div ref="echatsp3" style="height: 400px;"></div>
+										</el-card>
+									</el-col>
+								</el-row>
+							</el-card>
+						</el-col>
+					</el-row>
+				</el-tab-pane>
+				<el-tab-pane label="员工分析" name="tab5">
+					开发中...
 				</el-tab-pane>
 			</el-tabs>
 		</div>
@@ -113,9 +159,10 @@ export default {
 			isAdmin:false,//是否管理员
 			andonData:null,//加班导入确认数据
 			saveMonth:'',
-			products:{},
-			selProduct:[],
+			//products:{},
+			selProduct:'TRTC',
 			echatsObj:{},//echats
+			echatsObj2:{},//echats
 		}
 	},
 	async created() {
@@ -131,7 +178,7 @@ export default {
 		
 		let user = await this.$db.collection('user-andon-data').limit(1000).get();
 		this.dbDatas = user.data;
-		user.data.map(v=>{this.products[v.product||'其它产品'] = true;});
+		//user.data.map(v=>{this.products[v.product||'其它'] = true;});
 		
 		load.close();
 	},
@@ -156,6 +203,9 @@ export default {
 				}
 			}
 			return list;
+		},
+		dateAndPro(){//用于实现watch队列数据
+			return {datas:this.datas,selProduct:this.selProduct};
 		},
 		datas(){//实时计算的数据
 			let list = [];
@@ -190,23 +240,32 @@ export default {
 				}
 				if(obj['结单量'])list.push(obj);
 			}
-			list.sort((a,b)=>{
-				return b['结单量'] - a['结单量']
-			});
+			// list.sort((a,b)=>{
+			// 	return b['结单量'] - a['结单量']
+			// });
 			//this.echatsData();
 			return list;
 		},
-		pNameObj(){
+		products(){//有数据的产品
+			let obj = {};
+			this.datas.map(v=>{obj[v.product||'其它'] = true;});
+			return obj;
+		},
+		pNameObj(){//p账号对应的账号id
 			let obj = {};
 			this.dbDatas.map(user=>{
 				obj[user.pName] = user._id;
 			});
 			return obj;
-		}
+		},
+		
 	},
 	watch: {
 		sDateList(){
 			this.echatsData();//
+		},
+		dateAndPro(){
+			this.echatsData2();//
 		}
 	},
 	methods: {
@@ -223,6 +282,12 @@ export default {
 				this.$nextTick(()=>{
 					for (let mycharts in this.echatsObj) {
 						this.echatsObj[mycharts].resize();
+					}
+				})
+			}else if(tab.name == 'tab4'){//需要加载图表
+				this.$nextTick(()=>{
+					for (let mycharts in this.echatsObj2) {
+						this.echatsObj2[mycharts].resize();
 					}
 				})
 			}
@@ -274,23 +339,37 @@ export default {
 			selection.addRange(range);
 		},
 		getTableEchatsData(title,cpList,data,type){
+			console.log(data);
 			let dimensions = ['ym'], source = [], series = [];
 			for (let cp in cpList){
-				dimensions.push(cp);//写入产品
+				//dimensions.push(cp);//写入产品
 				series.push({
 					type: type||'bar',
-					stack: type?'':'total',
+					areaStyle: {},
+					stack: 'total',
+					//stack: type?'':'total',
 					label: {show: true},
 					emphasis: {focus: 'series'},
-					markPoint: type?{data: [{type: 'max', name: '最大值'},{type: 'min', name: '最小值'}]}:{},
+					//markPoint: type?{data: [{type: 'max', name: '最大值'},{type: 'min', name: '最小值'}]}:{},
 				})
 			}
-			for (let key in data) {
-				source.push(data[key]);
-			}
+			this.getSeries(cpList,data).map(obj=>{dimensions.push(obj.name);});
+			
+			for (let key in data) {source.push(data[key]);}
 			return {
 				title:{text:title},
-				tooltip: {trigger: 'axis',axisPointer: {type: 'shadow'}},
+				tooltip: {trigger: 'axis',axisPointer: {type: 'shadow'},formatter:function(a) {
+					let res = '', sum = 0;
+					a.forEach((item,index) => {
+						if(index == 0) {
+							res += `${item.axisValue}<br/>`;
+							res += `合计 : {{合计}}<br/>`;
+						}
+						sum += item.value[item.seriesName]||0;
+						res += `${item.marker} ${item.seriesName} : ${item.value[item.seriesName]||0}<br/>`;
+					})
+					return res.replace('{{合计}}',sum);
+				}},
 				legend: {},//data: legend
 				dataset:{dimensions,source},
 				grid: {left: '3%',right: '4%',bottom: '3%',containLabel: true},
@@ -300,17 +379,7 @@ export default {
 			};
 		},
 		getPicEchatsData(title,cpList,name,data){
-			let _series = [];
-			for (let cp in cpList){
-				let obj = {name:cp,value:0};
-				for(let key in data){
-					obj.value += data[key][cp]||0;
-				}
-				_series.push(obj);
-			}
-			_series.sort((a,b)=>{
-				return b.value - a.value
-			});
+			let _series = this.getSeries(cpList,data);
 			return {
 				title: {text: title,left: 'center'},
 				tooltip: {trigger: 'item',formatter: '{a} <br/>{b} : {c} ({d}%)'},
@@ -329,6 +398,20 @@ export default {
 					}
 				}]
 			}
+		},
+		getSeries(cpList,data){//获取扇形图统计数据（可排序，所以柱状图也能用到）
+			let _series = [];
+			for (let cp in cpList){
+				let obj = {name:cp,value:0};
+				for(let key in data){
+					obj.value += data[key][cp]||0;
+				}
+				_series.push(obj);
+			}
+			_series.sort((a,b)=>{
+				return b.name=='其它'?-1:b.value - a.value;
+			});
+			return _series;
 		},
 		echatsData(){
 			if(!this.$refs.echats1) return;
@@ -349,6 +432,7 @@ export default {
 					}
 				}
 			}
+			
 			this.echatsObj.echats1 = echarts.init(this.$refs.echats1);
 			this.echatsObj.echats1.setOption(this.getTableEchatsData('产品工单量分布图',cpList,cpObj));
 			
@@ -360,6 +444,29 @@ export default {
 			
 			this.echatsObj.echats4 = echarts.init(this.$refs.echats4);
 			this.echatsObj.echats4.setOption(this.getPicEchatsData('处理人数分布图(总)',cpList,'处理人',ppObj));
+		},
+		echatsData2(){
+			if(!this.$refs.echatsp1) return;
+			let ppjdlObj = {},//人员结单量数据
+				ppyxdObj = {},//人员评价单数据
+				ppmydObj = {},//人员处理时长
+				ppList = {};//人员列表
+				//cpList = {'满意度'};//
+			for(let user of this.datas){//循环数据
+				if((user.product||'其它') != this.selProduct) continue;
+				ppList[user.name] = true;
+				ppjdlObj[user.name] = user['结单量'];
+				ppyxdObj[user.name] = Math.round(user['结单量']*user['反馈率']);
+				ppmydObj[user.name] = Math.round(user['专项处理时长(汇总)']);
+			}
+			this.echatsObj2.echatsp1 = echarts.init(this.$refs.echatsp1);
+			this.echatsObj2.echatsp1.setOption(this.getPicEchatsData('工单总量分布',ppList,'工单量',{data:ppjdlObj}));
+			
+			this.echatsObj2.echatsp2 = echarts.init(this.$refs.echatsp2);
+			this.echatsObj2.echatsp2.setOption(this.getPicEchatsData('评价单量分布',ppList,'评价单量',{data:ppyxdObj}));
+			
+			this.echatsObj2.echatsp3 = echarts.init(this.$refs.echatsp3);
+			this.echatsObj2.echatsp3.setOption(this.getPicEchatsData('处理时长占比',ppList,'处理时长',{data:ppmydObj}));
 		}
 	},
 };

@@ -176,6 +176,7 @@
 			<el-form v-for="form,index in pbsForm" :ref="'pbsForm'+index" :key="index" :inline="true" :model="form" size="mini">
 				<el-form-item prop="_ids" label="调整员工" :rules="[{ required: true, message: '调整员工不能为空'}]">
 					<el-select v-model="form._ids" placeholder="请选择调整员工" filterable multiple collapse-tags style="width: 160px;" >
+						<el-option  v-if="isAdmin" label="选择所有" value="all"> </el-option>
 						<template v-for="item,i in dbDatas">
 							<el-option  v-if="isAdmin||item.spm==nowSpm" :key="i" :label="item.name" :value="item._id"> </el-option>
 						</template>
@@ -184,7 +185,7 @@
 				<el-form-item prop="dates" label="调整日期" :rules="[{ required: true, message: '调整日期不能为空'}]">
 					<el-date-picker v-model="form.dates" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 230px;"></el-date-picker>
 				</el-form-item>
-				<el-form-item prop="rest" label="周末排休">
+				<el-form-item prop="rest" :label="form._ids[0]=='all'?'跳过班次休':'周末排休'">
 					<el-switch v-model="form.rest"> </el-switch>
 				</el-form-item>
 				<el-form-item prop="value" label="调整班次" :rules="[{ required: true, message: '调整班次不能为空'}]">
@@ -560,22 +561,37 @@ export default {
 				let form = this.pbsForm[index]
 				if(!await this.$refs['pbsForm'+index][0].validate().catch(()=>{1;})) return this.$message({message: `请检查必填项`,type: 'error'});
 				
-				let obj = {pbData:{},isOvertime:{},visaFree:{}},nowDate = new Date(form.dates[0]);//new一个新的时间对象，避免数据跟着变
-				while(nowDate <= form.dates[1]){//对日期进行循环
-					let value = (form.rest && this.normWork[nowDate.format()].replace(/\*/g,'') == '休')?'休':form.value;//是否开节假日排休
-					this.setPbObj(obj,value,nowDate.format());//写入单个排班到obj
-					nowDate.setDate(nowDate.getDate()+1);//加一天
-				}
-				for (let _id of form._ids) {//遍历用户写入日期班次情况
-					if(saveData[_id]){//已存在的用户，需要合并
-						for (let key in obj) {//对pbData和isOvertime进行叠加合并操作
-							Object.assign(saveData[_id][key],obj[key]);
+				if(form._ids[0] != 'all'){//正常修改
+					let obj = {pbData:{},isOvertime:{},visaFree:{}},nowDate = new Date(form.dates[0]);//new一个新的时间对象，避免数据跟着变
+					while(nowDate <= form.dates[1]){//对日期进行循环
+						let value = (form.rest && this.normWork[nowDate.format()].replace(/\*/g,'') == '休')?'休':form.value;//是否开节假日排休
+						this.setPbObj(obj,value,nowDate.format());//写入单个排班到obj
+						nowDate.setDate(nowDate.getDate()+1);//加一天
+					}
+					for (let _id of form._ids) {//遍历用户写入日期班次情况
+						if(saveData[_id]){//已存在的用户，需要合并
+							for (let key in obj) {//对pbData和isOvertime进行叠加合并操作
+								Object.assign(saveData[_id][key],obj[key]);
+							}
+						}else{//否则直接赋值即可
+							saveData[_id] = obj;
 						}
-					}else{//否则直接赋值即可
-						saveData[_id] = obj;
+					}
+				}else{//全局修改
+					for (let user of this.dbDatas) {//遍历用户写入日期班次情况
+						let obj = {pbData:{},isOvertime:{},visaFree:{}},nowDate = new Date(form.dates[0]);
+						while(nowDate <= form.dates[1]){//对日期进行循环
+							let nowVal = user.pbData[nowDate.format()];
+							if(nowVal && (!form.rest || nowVal.replace(/\*/g,'') != '休')){//存在班次，且不为休息日或者不跳过休息日
+								this.setPbObj(obj,form.value,nowDate.format());//写入单个排班到obj
+							}
+							nowDate.setDate(nowDate.getDate()+1);//加一天
+						}
+						saveData[user._id] = obj;
 					}
 				}
 			}
+			console.log(saveData);
 			await this.updatePbData(saveData);//批量保存到数据库
 			this.dialogPbsFormVisible = false;
 		},

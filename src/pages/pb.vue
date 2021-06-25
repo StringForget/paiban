@@ -53,7 +53,11 @@
 								<div class="cell" :style="{width:key.width}">
 									<div v-if="d.isOvertime[key.prop]" :title="d[key.prop]">休</div>
 									<div v-else-if="d.visaFree[key.prop]" :title="d[key.prop]">不打卡</div>
-									<div v-else>{{d[key.prop]}}</div>
+									<div v-else>
+										<el-tooltip effect="dark" :content="code_time[d[key.prop]]" placement="top">
+											<span style="display: block;">{{d[key.prop]}}</span>
+										</el-tooltip>
+									</div>
 								</div>
 							</td>
 						</tr>
@@ -147,13 +151,14 @@ export default {
 					{prop: 'phone',label: '手机',fixed:true,width:'110px',left:'0px'},
 					{prop: 'name',label: '姓名',fixed:true,width:'80px',left:'111.5px'},
 					{prop: 'isJob',label: '在职状态',fixed:true,width:'70px',left:'193px'},
-				]},{
-				label: '',child:[
-					{prop: 'userNo',label: '工号',width:'80px'},
-					{prop: 'department',label: '部门',width:'150px'},
-					{prop: 'post',label: '岗位',width:'120px'},
-					{prop: 'joinDate',label: '入职时间',width:'100px'},
 				]}
+				// ,{
+				// label: '',child:[
+				// 	{prop: 'userNo',label: '工号',width:'80px'},
+				// 	{prop: 'department',label: '部门',width:'150px'},
+				// 	{prop: 'post',label: '岗位',width:'120px'},
+				// 	{prop: 'joinDate',label: '入职时间',width:'100px'},
+				// ]}
 			];
 			for (let ymd of this.sDateList) {
 				list.push({label: this.isCopy?ymd:ymd.substr(5),child:[{prop: ymd,width:this.isCopy?'':'60px',className:this.isCopy?'':'pb-val',label:this.weeks[new Date(ymd.replace(/-/g,'/')).getDay()]}]});
@@ -175,6 +180,11 @@ export default {
 				}
 			}
 			return {row2,cells};
+		},
+		code_time(){//班次时间对照表
+			let obj = {};
+			this.codes.map(v=>{obj[v.name] = v.dateStr});
+			return obj;
 		},
 		datas(){//实时计算的数据
 			let list = [];
