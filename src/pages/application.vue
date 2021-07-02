@@ -69,13 +69,14 @@
 				<el-table-column prop="name" align="center" width="80" label="姓名"></el-table-column>
 				<el-table-column prop="phone" align="center" width="120" label="电话"></el-table-column>
 				<el-table-column prop="pName" align="center" width="120" label="p账号"></el-table-column>
-				<el-table-column prop="pName" align="center" width="50" label="排班">
+				<el-table-column prop="isAdon" align="center" width="50" label="安灯">
 					<template slot-scope="scope">
 						<el-tooltip v-if="scope.row.isAdon" effect="dark" :content="scope.row.isAdon" placement="top">
 							<i class="el-icon-success" style="font-size: 20px;color: #03a9f4;"></i>
 						</el-tooltip>
 					</template>
 				</el-table-column>
+				<el-table-column prop="product" align="center" width="120" label="负责产品"></el-table-column>
 				<!-- <el-table-column prop="isAdon" align="center" width="100" label="安灯排班时间"> </el-table-column> -->
 				<el-table-column prop="isJob" align="center" width="80" label="在职状态">
 					<template slot-scope="scope">
@@ -138,7 +139,7 @@
 						<el-option label="清理班次" value="清理"></el-option>
 						<el-option label="请假/调休" value="事"></el-option>
 						<!-- <el-option label="加班" value="加班"></el-option> -->
-						<el-option label="申请不打卡" value="不打卡"></el-option>
+						<el-option v-if="isAdmin" label="不打卡" value="不打卡"></el-option>
 						<template v-for="item in codes">
 							<el-option v-if="item.name!='不打卡'&&item.name!='事'" :key="item.name" :value="item.name">
 								<el-tooltip effect="dark" :content="item.dateStr" placement="right">
@@ -213,106 +214,154 @@
 				<el-button size="mini" type="primary" @click="savePbsChange">提 交</el-button>
 			</div>
 		</el-dialog>
-		<el-dialog :title="infoForm._id?`【${infoForm.name}】信息调整`:'新员工入职'" :visible.sync="dialogInfoFormVisible">
+		<el-dialog width="800px" :title="infoForm._id?`【${infoForm.name}】信息调整`:'新员工入职'" :visible.sync="dialogInfoFormVisible">
 			<el-form ref="infoForm" :model="infoForm" size="mini" label-width="100px">
-				<el-form-item prop="name" label="姓名" :rules="[{ required: true, message: '必填'}]">
-					<el-col :span="11">
-						<el-input v-model="infoForm.name" ></el-input>
-					</el-col>
-					<el-col class="line" :span="2" style="text-align: center;">组长</el-col>
-					<el-col :span="11">
-						<el-select size="mini"
-							v-model="infoForm.spm"
-							:disabled="!isAdmin&&infoForm._id"
-							style="width: 100%;"
-							placeholder="选择组长">
-							<el-option label="特殊(不归属组)" value="特殊"></el-option>
-							<el-option v-for="item,i in outherSpms" :key="'-'+i" :label="item.spm" :value="item.spm"> </el-option>
-						</el-select>
-					</el-col>
-				</el-form-item>
-				<el-form-item prop="phone" label="电话号码" :rules="[{ required: true, message: '必填'}]">
-					<el-input v-model="infoForm.phone"></el-input>
-				</el-form-item>
-				<el-form-item label="工号部门">
+				<el-row>
 					<el-col :span="8">
-						<el-input v-model="infoForm.userNo" placeholder="工号"></el-input>
-					</el-col>
-					<el-col :span="8" >
-						<el-input v-model="infoForm.department" placeholder="部门"></el-input>
+						<el-form-item prop="name" label="姓名" :rules="[{ required: true, message: '必填'}]">
+							<el-input v-model="infoForm.name" ></el-input>
+						</el-form-item>
 					</el-col>
 					<el-col :span="8">
-						<el-input v-model="infoForm.post" placeholder="岗位"></el-input>
-					</el-col>
-				</el-form-item>
-				<el-form-item label="导师组织">
-					<el-col :span="8">
-						<el-input v-model="infoForm.mentor" placeholder="导师"></el-input>
-					</el-col>
-					<el-col :span="8" >
-						<el-input v-model="infoForm.mentorOrg" placeholder="导师所在组织"></el-input>
+						<el-form-item prop="phone" label="电话" :rules="[{ required: true, message: '必填'}]">
+							<el-input v-model="infoForm.phone"></el-input>
+						</el-form-item>
 					</el-col>
 					<el-col :span="8">
-						<el-input v-model="infoForm.scoreMentor" placeholder="绩效导师"></el-input>
+						<el-form-item prop="spm" label="组长" :rules="[{ required: true, message: '必填'}]">
+							<el-select size="mini"
+								v-model="infoForm.spm"
+								:disabled="!isAdmin&&infoForm._id"
+								style="width: 100%;"
+								placeholder="选择组长">
+								<el-option label="特殊(不归属组)" value="特殊"></el-option>
+								<el-option v-for="item,i in outherSpms" :key="'-'+i" :label="item.spm" :value="item.spm"> </el-option>
+							</el-select>
+						</el-form-item>
 					</el-col>
-				</el-form-item>
-				<el-form-item label="办公信息">
+				</el-row>
+				<el-row>
 					<el-col :span="8">
-						<el-input v-model="infoForm.workLocation" placeholder="办公地点"></el-input>
-					</el-col>
-					<el-col :span="8" >
-						<el-input v-model="infoForm.workEmail" placeholder="办公邮箱"></el-input>
+						<el-form-item label="工号">
+							<el-input v-model="infoForm.userNo" placeholder="工号"></el-input>
+						</el-form-item>
 					</el-col>
 					<el-col :span="8">
-						<el-input v-model="infoForm.workWx" placeholder="办公微信"></el-input>
+						<el-form-item label="部门">
+							<el-input v-model="infoForm.department" placeholder="部门"></el-input>
+						</el-form-item>
 					</el-col>
-				</el-form-item>
-				<el-form-item prop="joinDate" label="入职日期" :rules="[{ required: true, message: '必填'}]">
-					<el-date-picker type="date" placeholder="选择日期" value-format="yyyy-MM-dd" v-model="infoForm.joinDate" style="width: 100%;"></el-date-picker>
-				</el-form-item>
-				<el-form-item prop="isAdon" v-if="infoForm._id" label="p账号" :rules="[{ required: infoForm.isAdon, message: '安灯开始排班时间不为空则必填'}]">
-					<el-input v-model="infoForm.pName"></el-input>
-				</el-form-item>
-				<el-form-item v-if="infoForm._id" label="安灯排班时间">
-					<el-col :span="11">
-						<el-date-picker type="date" placeholder="开始日期(无排班请留空)" value-format="yyyy-MM-dd" v-model="infoForm.isAdon" style="width: 100%;"></el-date-picker>
+					<el-col :span="8">
+						<el-form-item label="岗位">
+							<el-input v-model="infoForm.post" placeholder="岗位"></el-input>
+						</el-form-item>
 					</el-col>
-					<el-col class="line" :span="2" style="text-align: center;">至</el-col>
-					<el-col :span="11">
-						<el-date-picker type="date" placeholder="结束日期(可留空)" value-format="yyyy-MM-dd" v-model="infoForm.andonDateOut" style="width: 100%;"></el-date-picker>
+				</el-row>
+				<el-row>
+					<el-col :span="8">
+						<el-form-item label="导师">
+							<el-input v-model="infoForm.mentor" placeholder="导师"></el-input>
+						</el-form-item>
 					</el-col>
-				</el-form-item>
-				<el-form-item v-if="infoForm._id" label="在职状态">
-					<el-radio-group v-model="infoForm.isJob">
-						<el-radio :label="true">正常在职</el-radio>
-						<el-radio :label="false">已离职或已确定离职日期</el-radio>
-					</el-radio-group>
-				</el-form-item>
+					<el-col :span="8">
+						<el-form-item label="导师组织">
+							<el-input v-model="infoForm.mentorOrg" placeholder="导师组织"></el-input>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="绩效导师">
+							<el-input v-model="infoForm.scoreMentor" placeholder="绩效导师"></el-input>
+						</el-form-item>
+					</el-col>
+				</el-row>
+				<el-row>
+					<el-col :span="8">
+						<el-form-item label="办公地点">
+							<el-input v-model="infoForm.workLocation" placeholder="办公地点"></el-input>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="办公邮箱">
+							<el-input v-model="infoForm.workEmail" placeholder="办公邮箱"></el-input>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="办公微信">
+							<el-input v-model="infoForm.workWx" placeholder="办公微信"></el-input>
+						</el-form-item>
+					</el-col>
+				</el-row>
+				<el-row>
+					<el-col :span="8">
+						<el-form-item label="负责产品" prop="product" :rules="[{ required: true, message: '必填'}]">
+							<el-select v-model="infoForm.product" filterable allow-create default-first-option placeholder="请选择或输入负责产品">
+								<el-option v-for="item in cpList" :key="item" :label="item" :value="item"> </el-option>
+							</el-select>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="入职日期" prop="joinDate" :rules="[{ required: true, message: '必填'}]">
+							<el-date-picker type="date" placeholder="选择日期" value-format="yyyy-MM-dd" v-model="infoForm.joinDate" style="width: 100%;"></el-date-picker>
+						</el-form-item>
+					</el-col>
+					<el-col :span="8">
+						<el-form-item label="在职状态">
+							<el-radio-group v-model="infoForm.isJob">
+								<el-radio :label="true">正常在职</el-radio>
+								<el-radio :label="false">已离职/离职中</el-radio>
+							</el-radio-group>
+						</el-form-item>
+					</el-col>
+				</el-row>
 				<el-form-item label="离职日期" prop="outDate" :rules="[{ required: true, message: '必填'}]" v-if="!infoForm.isJob">
 					<el-date-picker type="date" placeholder="选择日期" value-format="yyyy-MM-dd" v-model="infoForm.outDate" style="width: 100%;"></el-date-picker>
 				</el-form-item>
-				<el-form-item label="固定排班">
-					<el-col :span="7">
-						<el-date-picker type="date" placeholder="开始日期(不设则留空)" value-format="yyyy-MM-dd" v-model="infoForm.zdyPb.start" style="width: 100%;"></el-date-picker>
+				<el-row v-if="infoForm._id">
+					<el-col :span="8">
+						<el-form-item prop="isAdon" label="p账号" :rules="[{ required: infoForm.isAdon, message: '安灯开始排班时间不为空则必填'}]">
+							<el-input v-model="infoForm.pName"></el-input>
+						</el-form-item>
 					</el-col>
-					<el-col class="line" :span="1" style="text-align: center;">至</el-col>
-					<el-col :span="7">
-						<el-date-picker type="date" placeholder="结束日期(可留空)" value-format="yyyy-MM-dd" v-model="infoForm.zdyPb.end" style="width: 100%;"></el-date-picker>
+					<el-col :span="16">
+						<el-form-item label="安灯排班">
+							<el-col :span="11">
+								<el-date-picker type="date" placeholder="开始日期(无排班留空)" value-format="yyyy-MM-dd" v-model="infoForm.isAdon" style="width: 100%;"></el-date-picker>
+							</el-col>
+							<el-col class="line" :span="2" style="text-align: center;">至</el-col>
+							<el-col :span="11">
+								<el-date-picker type="date" placeholder="结束日期(不确定留空)" value-format="yyyy-MM-dd" v-model="infoForm.andonDateOut" style="width: 100%;"></el-date-picker>
+							</el-col>
+						</el-form-item>
 					</el-col>
-					<el-col class="line" :span="2" style="text-align: center;">班次</el-col>
-					<el-col :span="7">
-						<el-select v-model="infoForm.zdyPb.value" placeholder="固定班次">
-							<el-option v-if="isAdmin" label="不打卡" value="不打卡"></el-option>
-							<template v-for="item in codes">
-								<el-option v-if="item.name!='不打卡'&&item.name!='事'" :key="item.name" :value="item.name">
-									<el-tooltip effect="dark" :content="item.dateStr" placement="right">
-										<span style="display: block;">{{item.name}}</span>
-									</el-tooltip>
-								</el-option>
-							</template>
-						</el-select>
+				</el-row>
+				<el-row>
+					<el-col :span="8">
+						<el-form-item label="固定班次" >
+							<el-select v-model="infoForm.zdyPb.value" placeholder="不固定可不选">
+								<el-option label="不固定班次" value=""></el-option>
+								<el-option v-if="isAdmin" label="不打卡" value="不打卡"></el-option>
+								<template v-for="item in codes">
+									<el-option v-if="item.name!='不打卡'&&item.name!='事'" :key="item.name" :value="item.name">
+										<el-tooltip effect="dark" :content="item.dateStr" placement="right">
+											<span style="display: block;">{{item.name}}</span>
+										</el-tooltip>
+									</el-option>
+								</template>
+							</el-select>
+						</el-form-item>
 					</el-col>
-				</el-form-item>
+					<el-col :span="16">
+						<el-form-item label="固定日期">
+							<el-col :span="11">
+								<el-date-picker type="date" placeholder="开始日期(不固定留空)" value-format="yyyy-MM-dd" v-model="infoForm.zdyPb.start" style="width: 100%;"></el-date-picker>
+							</el-col>
+							<el-col class="line" :span="2" style="text-align: center;">至</el-col>
+							<el-col :span="11">
+								<el-date-picker type="date" placeholder="结束日期(不确定留空)" value-format="yyyy-MM-dd" v-model="infoForm.zdyPb.end" style="width: 100%;"></el-date-picker>
+							</el-col>
+						</el-form-item>
+					</el-col>
+				</el-row>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button size="mini" @click="dialogInfoFormVisible = false">取 消</el-button>
@@ -356,6 +405,7 @@ export default {
 	data(){
 		return {
 			isAdmin:false,//是否管理员
+			cpList:['音视频-终端','音视频-云端','音视频-云通','即时通信IM','云服务器','数据库','大数据AI','中间件SCF','直播','加速','安全','计费','网络','计算','存储','容器TKE','其他'],
 			codes:[],
 			date_:[],//查询日期范围
 			spms:[],
@@ -370,7 +420,7 @@ export default {
 			dialogPbFormVisible:false,//排班调整弹出组件是否显示
 			pbForm:{_id:'',name:'',sum:0,pbData:{},datas:[]},//排班调整表单
 			dialogInfoFormVisible:false,//排班调整弹出组件是否显示
-			infoForm:{_id:'',name:'',spm:'',phone:'',pName:'',isAdon:'',andonDateOut:'',isJob:'',userNo:'',department:'',post:'',joinDate:'',outDate:'',zdyPb:{}},//组员信息调整表单
+			infoForm:{_id:'',name:'',spm:'',phone:'',pName:'',isAdon:'',andonDateOut:'',isJob:'',userNo:'',department:'',post:'',joinDate:'',outDate:'',zdyPb:{},mentor:'',mentorOrg:'',scoreMentor:'',workLocation:'',workEmail:'',workWx:'',product:''},//组员信息调整表单
 			dialogPbsFormVisible:false,
 			pbsForm:[],//批量修改排班数据
 			dialogPbListVisible:false,//组员排班数据是否显示

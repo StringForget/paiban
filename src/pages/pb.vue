@@ -189,6 +189,7 @@ export default {
 		datas(){//实时计算的数据
 			let list = [];
 			let {selSpm,selCode,likeName} = this;
+			//let dateObj = {},gong=0;
 			for(let index in this.dbDatas) {
 				let user = this.dbDatas[index];
 				if((
@@ -225,7 +226,15 @@ export default {
 							obj[obj[ymd]]++;
 							isCode = true;
 						}
+						// if(user.isAdon && obj[ymd] && obj[ymd] != '休' && (new Date(ymd).getDay()==0 || new Date(ymd).getDay()==6)){
+						// 	if(dateObj[ymd]) dateObj[ymd]++;
+						// 	else dateObj[ymd] = 1;
+						// }
+						
 					}
+					// if(user.isAdon){
+					// 	gong++;
+					// }
 					if(
 						(selCode.length==0 || isCode) &&
 						(selSpm.length==0 || isSpm) &&
@@ -237,6 +246,7 @@ export default {
 					console.log(user,user.joinDate,this.date_[1],new Date(user.joinDate) <= new Date(this.date_[1].format()))
 				}
 			}
+			//console.log(dateObj,gong);
 			return list;
 		}
 	},

@@ -160,7 +160,7 @@ export default {
 			andonData:null,//加班导入确认数据
 			saveMonth:'',
 			//products:{},
-			selProduct:'TRTC',
+			selProduct:'',
 			echatsObj:{},//echats
 			echatsObj2:{},//echats
 		}

@@ -31,7 +31,7 @@ export default {
 	name: "heard",
 	data() {
 		return {
-			menu:{'/':'首页','/count':'统计页','/application':'组员信息/排班管理'},
+			menu:{'/':'组员管理','/pb':'班次信息','/count':'排班统计'},
 			date_:[],
 			pickerOptions: {
 				shortcuts: [{

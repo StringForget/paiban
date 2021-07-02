@@ -16,8 +16,8 @@ export default new Router({
   routes: [
 		{ path: '/login', component: Login ,meta:{title:'排班管理登录'}},
 		{ path: '/count', component: Count ,meta:{title:'排班情况统计'}},
-		{ path: '/application', component: Application ,meta:{title:'组员信息管理'}},
+		{ path: '/pb', component: Pb ,meta:{title:'排班信息总览'}},
 		{ path: '/countAndon', component: CountAndon ,meta:{title:'工单指标分析(月)'}},
-		{ path: '/', component: Pb ,meta:{title:'排班管理系统'}}//根路径重定向
+		{ path: '/', component: Application ,meta:{title:'排班管理系统'}}//根路径重定向
 	]
 })
