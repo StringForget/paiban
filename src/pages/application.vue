@@ -1,5 +1,5 @@
 <template>
-	<div id="app">
+	<div>
 		<h-eard @setDate="date_=$event" :readOnly="true">
 			<el-form-item>
 				<el-select size="mini" v-if="!nowSpm&&!isAdmin"
@@ -66,18 +66,9 @@
 		</h-eard>
 		<div class="content">
 			<el-table :data="datas" size="mini" border style="width: 100%">
+				<el-table-column type="index" align="center" width="45"> </el-table-column>
 				<el-table-column prop="name" align="center" width="80" label="姓名"></el-table-column>
-				<el-table-column prop="phone" align="center" width="120" label="电话"></el-table-column>
-				<el-table-column prop="pName" align="center" width="120" label="p账号"></el-table-column>
-				<el-table-column prop="isAdon" align="center" width="50" label="安灯">
-					<template slot-scope="scope">
-						<el-tooltip v-if="scope.row.isAdon" effect="dark" :content="scope.row.isAdon" placement="top">
-							<i class="el-icon-success" style="font-size: 20px;color: #03a9f4;"></i>
-						</el-tooltip>
-					</template>
-				</el-table-column>
-				<el-table-column prop="product" align="center" width="120" label="负责产品"></el-table-column>
-				<!-- <el-table-column prop="isAdon" align="center" width="100" label="安灯排班时间"> </el-table-column> -->
+				<el-table-column prop="phone" align="center" width="100" label="电话"></el-table-column>
 				<el-table-column prop="isJob" align="center" width="80" label="在职状态">
 					<template slot-scope="scope">
 						<el-tooltip effect="dark" :content="`${scope.row.joinDate}${scope.row.outDate?'至'+scope.row.outDate:'入职'}`" placement="top">
@@ -87,24 +78,25 @@
 						</el-tooltip>
 					</template>
 				</el-table-column>
-				
-				<!-- <el-table-column prop="jbNum" align="center" width="80" label="加班">
-					<template slot-scope="scope"> {{scope.row.jbNum?scope.row.jbNum+'天':''}} </template>
-				</el-table-column>
-				<el-table-column prop="qjNum" align="center" width="80" label="请假">
-					<template slot-scope="scope"> {{scope.row.qjNum?scope.row.qjNum+'天':''}} </template>
-				</el-table-column> -->
-				<el-table-column prop="ycqNum" align="center" width="80" label="计薪">
+				<el-table-column prop="pName" align="center" width="120" label="p账号" ></el-table-column>
+				<el-table-column prop="isAdon" align="center" width="50" label="安灯" >
 					<template slot-scope="scope">
-						<el-tooltip effect="dark" placement="top" :content="`${'加班：'+scope.row.jbNum+'天'},${'请假：'+scope.row.qjNum+'天'}，${'夜班：'+scope.row.ybDays+'天'}`">
-							<el-tag size="small">{{scope.row.zcqNum+'天'}}</el-tag>
+						<el-tooltip v-if="scope.row.isAdon" effect="dark" :content="scope.row.isAdon" placement="top">
+							<i class="el-icon-success" style="font-size: 20px;color: #03a9f4;"></i>
 						</el-tooltip>
 					</template>
 				</el-table-column>
-				<el-table-column prop="sum" align="center" width="120" label="需补班/可提加班">
+				<el-table-column prop="product" align="center" width="100" label="负责产品"></el-table-column>
+				<el-table-column prop="zcqNum" align="center" width="80" label="出勤">
 					<template slot-scope="scope">
-						<el-tag size="small" type="success" v-if="scope.row.sum-scope.row.ybDays/4 >= 1">可提加班{{scope.row.sum-scope.row.ybDays/4}}天</el-tag>
-						<el-tag size="small" type="danger" v-else-if="scope.row.sum<0">需补班{{scope.row.sum*-1}}天</el-tag>
+						<el-tooltip effect="dark" placement="top" :content="`${'加班：'+scope.row.jbNum+'天'},${'请假：'+scope.row.qjNum+'天'}，${'夜班：'+scope.row.ybDays+'天'}`">
+							<el-tag size="small">{{Math.round(scope.row.zcqNum*10)/10+'天'}}</el-tag>
+						</el-tooltip>
+					</template>
+				</el-table-column>
+				<el-table-column prop="sum" align="center" width="70" label="缺勤">
+					<template slot-scope="scope">
+						<el-tag size="small" type="danger" v-if="scope.row.sum<0">{{Math.round(scope.row.sum*-10)/10}}天</el-tag>
 					</template>
 				</el-table-column>
 				<el-table-column prop="spm" align="center" width="80" label="组长"></el-table-column>
@@ -128,7 +120,7 @@
 				</el-table-column>
 			</el-table>
 		</div>
-		<el-dialog :title="`${pbForm.name}排班调整`" width="800px" :visible.sync="dialogPbFormVisible">
+		<el-dialog :title="`${pbForm.name}排班调整`" :close-on-click-modal="false" width="800px" :visible.sync="dialogPbFormVisible">
 			<el-form v-for="form,index in pbForm.datas" :ref="'pbForm'+index" :key="index" :inline="true" :model="form" size="mini">
 				<el-form-item prop="date" label="调整日期" :rules="[{ required: true, message: '调整日期不能为空'}]">
 					<el-date-picker style="width: 140px;" v-model="form.date" value-format="yyyy-MM-dd" type="date" placeholder="选择日期">
@@ -173,7 +165,7 @@
 				<el-button size="mini" type="primary" @click="savePbChange">提 交</el-button>
 			</div>
 		</el-dialog>
-		<el-dialog title="批量排班调整" width="1020px" :visible.sync="dialogPbsFormVisible">
+		<el-dialog title="批量排班调整" width="1020px" :close-on-click-modal="false" :visible.sync="dialogPbsFormVisible">
 			<el-form v-for="form,index in pbsForm" :ref="'pbsForm'+index" :key="index" :inline="true" :model="form" size="mini">
 				<el-form-item prop="_ids" label="调整员工" :rules="[{ required: true, message: '调整员工不能为空'}]">
 					<el-select v-model="form._ids" placeholder="请选择调整员工" filterable multiple collapse-tags style="width: 160px;" >
@@ -214,7 +206,7 @@
 				<el-button size="mini" type="primary" @click="savePbsChange">提 交</el-button>
 			</div>
 		</el-dialog>
-		<el-dialog width="800px" :title="infoForm._id?`【${infoForm.name}】信息调整`:'新员工入职'" :visible.sync="dialogInfoFormVisible">
+		<el-dialog width="800px" :title="infoForm._id?`【${infoForm.name}】信息调整`:'新员工入职'" :close-on-click-modal="false" :visible.sync="dialogInfoFormVisible">
 			<el-form ref="infoForm" :model="infoForm" size="mini" label-width="100px">
 				<el-row>
 					<el-col :span="8">
@@ -248,36 +240,48 @@
 					</el-col>
 					<el-col :span="8">
 						<el-form-item label="部门">
-							<el-input v-model="infoForm.department" placeholder="部门"></el-input>
+							<el-select v-model="infoForm.department" filterable allow-create placeholder="选择或输入">
+								<el-option v-for="name in departments" :key="name" :label="name" :value="name"> </el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="8">
 						<el-form-item label="岗位">
-							<el-input v-model="infoForm.post" placeholder="岗位"></el-input>
+							<el-select v-model="infoForm.post" filterable allow-create placeholder="选择或输入">
+								<el-option v-for="name in posts" :key="name" :label="name" :value="name"> </el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 				</el-row>
 				<el-row>
 					<el-col :span="8">
 						<el-form-item label="导师">
-							<el-input v-model="infoForm.mentor" placeholder="导师"></el-input>
+							<el-select v-model="infoForm.mentor" filterable allow-create placeholder="选择或输入">
+								<el-option v-for="name in mentors" :key="name" :label="name" :value="name"> </el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="8">
 						<el-form-item label="导师组织">
-							<el-input v-model="infoForm.mentorOrg" placeholder="导师组织"></el-input>
+							<el-select v-model="infoForm.mentorOrg" filterable allow-create placeholder="选择或输入">
+								<el-option v-for="name in mentorsOrgs" :key="name" :label="name" :value="name"> </el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="8">
 						<el-form-item label="绩效导师">
-							<el-input v-model="infoForm.scoreMentor" placeholder="绩效导师"></el-input>
+							<el-select v-model="infoForm.scoreMentor" filterable allow-create placeholder="选择或输入">
+								<el-option v-for="name in mentors" :key="name" :label="name" :value="name"> </el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 				</el-row>
 				<el-row>
 					<el-col :span="8">
 						<el-form-item label="办公地点">
-							<el-input v-model="infoForm.workLocation" placeholder="办公地点"></el-input>
+							<el-select v-model="infoForm.workLocation" filterable allow-create placeholder="选择或输入">
+								<el-option v-for="name in workLocations" :key="name" :label="name" :value="name"> </el-option>
+							</el-select>
 						</el-form-item>
 					</el-col>
 					<el-col :span="8">
@@ -369,7 +373,7 @@
 			</div>
 		</el-dialog>
 		
-		<el-dialog :title="`【${pbData.name}】的排班信息`" width="700px" :visible.sync="dialogPbListVisible">
+		<el-dialog :title="`【${pbData.name}】的排班信息`" :close-on-click-modal="false" width="700px" :visible.sync="dialogPbListVisible">
 			<el-calendar class="pb-list-calendar" style="margin-top: -30px;margin-bottom: -30px;">
 				<template
 					slot="dateCell"
@@ -382,7 +386,7 @@
 			</el-calendar>
 		</el-dialog>
 		
-		<el-dialog title="加班数据导入确认" :visible.sync="jbSaveData">
+		<el-dialog title="加班数据导入确认" :close-on-click-modal="false" :visible.sync="jbSaveData">
 			<el-form size="mini" label-width="100px" style="max-height: 300px;overflow: auto;">
 				<el-form-item v-for="obj,key in jbSaveData" :key="key" :label="obj.name" style="margin-bottom: 3px;">
 					<el-tag size="mini" style="margin-right: 5px;" v-for="val,date in obj.isOvertime" :key="date">{{date}}</el-tag>
@@ -408,6 +412,11 @@ export default {
 			cpList:['音视频-终端','音视频-云端','音视频-云通','即时通信IM','云服务器','数据库','大数据AI','中间件SCF','直播','加速','安全','计费','网络','计算','存储','容器TKE','其他'],
 			codes:[],
 			date_:[],//查询日期范围
+			departments:['基础技术服务一组','平台与架构服务一组(1)','平台与架构服务一组(2)','平台与架构服务二组','平台与架构服务四组','平台与架构服务五组','平台与架构服务七组','网络技术运营一组','产研一组','产研二组'],//部门
+			posts:['运维工程师','开发支持工程师','部门助理','前端开发工程师','数据分析师'],//
+			mentors:['singleli(李沈)','adamxhe(何翔)','brinkmai(麦世勇)','alanan(安轲)','rickyu(于航)','bryanpgao(高鹏)','rupertzhang(张启荣)','joeexu(许彦昭)','clairehou(侯超)','waywang(汪华)','imandyhuang(黄文婷)','guoyanliang(梁国衍)','yuyuedeng(邓逾越)','adolphhuang(黄玉斌)','changlinli(黎常林)','jackwlchen(陈文龙)','ailanzhou(周朋伟)','lvanwu(吴煜林)','alexzmzhang(张敏)','joecao(曹祥文)','stevenshan(单少文)','runmouzhou(邹润谋)','walklu(陆佳青)'],//
+			mentorsOrgs:['平台与架构服务一组','网络技术运营一组','基础技术服务一组','区域一组','基础技术服务二组','平台与架构服务二组','产品二组','平台与架构服务三组','区域三组','平台与架构服务四组','平台与架构服务五组','平台与架构服务七组','平台与架构服务八组','平台与架构服务九组','计算IAAS技术服务组'],//
+			workLocations:['松日4F','第三极大厦11F','国人通信大厦6F','北京长远天地7F','松日16F','松日14F','武汉'],//
 			spms:[],
 			outherSpms:[],
 			selSpm:'',
@@ -460,6 +469,7 @@ export default {
 			for(let index in this.dbDatas) {
 				let user = this.dbDatas[index];
 				if((!user.spm && !this.isAdmin) || (this.selSpms.length!=0 && !this.selSpms.includes(user.spm))) continue;
+				//if(!user.isAdon || !user.isJob) continue;
 				let obj = {
 					...user,
 					index:index-0+1,
@@ -755,7 +765,6 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 	.content{padding-top: 40px;}
-	.el-table{z-index: 11;}
 	.pb-list-cell>p {text-align: center;margin: 0;}
 	.pb-list-cell .cell-date {margin: 0;font-size: 20px;}
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
 		<h-eard @setDate="date_=$event" :isMonth="true">
 			<!-- <el-form-item>
 				<el-select size="mini" v-model="selProduct" multiple collapse-tags placeholder="负责产品">
@@ -271,7 +271,7 @@ export default {
 	methods: {
 		getDataByTitle(title){
 			let data = this.datas.slice(1,parseInt(this.datas.length/2));
-			let type = /.*[差|弱|时长|透传].*/.test(title)?-1:1;
+			let type = /.*[差|弱|时长|透传|次数].*/.test(title)?-1:1;
 			data.sort((a,b)=>{
 				return (b[title] - a[title])*type
 			});
@@ -476,7 +476,6 @@ export default {
 <style scoped>
 	td.pb-val:hover {cursor: pointer;background: #03A9F4!important;color: #fff;}
 	.pb-list .el-radio {margin-right: 20px;margin-bottom: 20px;margin-left: 0!important;width: 80px;}
-	.header{position: fixed;left: 5px;width: 100%;background: #fff;z-index: 10;height: 40px;overflow: hidden;}
 	.content{padding: 40px 10px 10px;}
 	.dialog-pb .el-dialog__body {padding: 5px 20px;padding-bottom: 0;}
 	.dialog-pb .el-dialog__footer {padding-top: 0;padding-bottom: 10px;}

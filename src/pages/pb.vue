@@ -1,21 +1,21 @@
 <template>
 	<div>
 		<h-eard @setDate="date_=$event">
-			<el-form-item>
+			<!-- <el-form-item>
 				<el-switch size="mini" v-if="isAdmin" v-model="isCopy" active-text="查看" inactive-text="维护"> </el-switch>
-			</el-form-item>
+			</el-form-item> -->
 			<el-form-item>
-				<el-select style="width: 150px;" size="mini" v-model="selSpm" multiple collapse-tags placeholder="spm组长">
+				<el-select style="width: 145px;" size="mini" v-model="selSpm" multiple collapse-tags placeholder="spm组长">
 					<el-option v-for="item in spms" :key="item.spm" :label="item.spm" :value="item.spm"> </el-option>
 				</el-select>
 			</el-form-item>
 			<el-form-item>
-				<el-select style="width: 150px;" size="mini" v-model="selCode" multiple collapse-tags placeholder="班次">
+				<el-select style="width: 145px;" size="mini" v-model="selCode" multiple collapse-tags placeholder="班次">
 					<el-option v-for="item in codes" :key="item.name" :label="item.name" :value="item.name"></el-option>
 				</el-select>
 			</el-form-item>
 			<el-form-item>
-				<el-input style="width: 150px;" size="mini" v-model="likeName" placeholder="姓名"></el-input>
+				<el-input style="width: 100px;" size="mini" v-model="likeName" placeholder="姓名"></el-input>
 			</el-form-item>
 			<el-form-item v-show="isCopy">
 				<el-button size="mini" @click="selTable()">复制</el-button>
@@ -121,6 +121,7 @@ export default {
 		if(!pow.isAdmin && pow.spm) this.selSpm.push(pow.spm);
 		
 		let user = await this.$db.collection('cms-gyy-user').limit(1000).orderBy('isAdon','desc').get();
+		
 		let codes = await this.$db.collection('cms-gyy-pbcode').limit(100).orderBy('name','asc').get();
 		let maxDateTime = new Date('2020-01-01');
 		for(let u of user.data){
@@ -336,7 +337,6 @@ export default {
 <style scoped>
 	td.pb-val:hover {cursor: pointer;background: #03A9F4!important;color: #fff;}
 	.pb-list .el-radio {margin-right: 20px;margin-bottom: 20px;margin-left: 0!important;width: 80px;}
-	.header{position: fixed;left: 5px;width: 100%;background: #fff;z-index: 10;}
 	.content{padding-top: 39px;}
 	.dialog-pb .el-dialog__body {padding: 5px 20px;padding-bottom: 0;}
 	.dialog-pb .el-dialog__footer {padding-top: 0;padding-bottom: 10px;}

@@ -1,27 +1,19 @@
 <template>
 	<div class="header">
-		<el-form :inline="true" class="form-inline" style="margin-bottom: 5px;">
+		<el-form :inline="true" class="form-inline no-margin" size="mini" style="padding: 5px 0;">
 			<el-form-item>
-				<el-menu mode="horizontal" class="menu" index="1" @select="handleSelect">
-					<el-submenu index="1-1">
-						<template slot="title">{{menu[$route.path]}}</template>
-						<el-menu-item v-for="title,path in menu" :key="path" :index="path">{{title}}</el-menu-item>
-					</el-submenu>
-				</el-menu>
-			</el-form-item>
-			<el-form-item>
-				<el-date-picker :type="isMonth?'monthrange':'daterange'" :readonly="readOnly" size="mini" v-model="date_" :picker-options="isMonth?pickerOptions:''" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 230px;" > </el-date-picker>
+				<el-date-picker :type="isMonth?'monthrange':'daterange'" :readonly="readOnly" v-model="date_" :picker-options="isMonth?pickerOptions:''" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 230px;" > </el-date-picker>
 			</el-form-item>
 			<el-form-item>
 				<el-button-group>
-					<el-button @click="changeYM(-1)" size="mini" type="primary" icon="el-icon-arrow-left" title="上个月"></el-button>
-					<el-button @click="changeYM(1)" size="mini" type="primary" icon="el-icon-arrow-right" title="下个月"></el-button>
+					<el-button @click="changeYM(-1)" type="primary" icon="el-icon-arrow-left" title="上个月"></el-button>
+					<el-button @click="changeYM(1)" type="primary" icon="el-icon-arrow-right" title="下个月"></el-button>
 				</el-button-group>
 			</el-form-item>
 			<slot></slot>
-			<el-form-item style="float: right; padding: 0 20px;">
-				<el-button size="mini" type="danger" @click="outLogin()"><i class="el-icon-circle-close"></i>退出登录</el-button>
-			</el-form-item>
+			<!-- <el-form-item style="float: right; padding: 0 20px;">
+				<el-button type="danger" ><i class="el-icon-circle-close"></i>退出登录</el-button>
+			</el-form-item> -->
 		</el-form>
 	</div>
 </template>
@@ -77,9 +69,6 @@ export default {
 		}
 	},
 	async created() {
-		if((await this.$getUser()).isSAdmin){//超级管理员专属菜单
-			this.menu['/countAndon'] = '工单指标分析(月)';
-		}
 		let nowYM = {y:new Date().getFullYear(),m:new Date().getMonth()+1};
 		let ym = `${nowYM.y}/${nowYM.m}`;
 		this.date_ = [new Date(ym+'/1'),new Date(ym+`/${new Date(nowYM.y, nowYM.m, 0).getDate()}`)];
@@ -90,12 +79,6 @@ export default {
 		}
 	},
 	methods: {
-		async outLogin() {//退出登录
-			let load = this.$loading();
-			await this.$auth.signOut();
-			load.close();
-			this.$router.push('/login');
-		},
 		changeYM(mode){//改变年月
 			let nowYM = {y:this.date_[0].getFullYear(),m:this.date_[0].getMonth()+1};
 			let days = new Date(nowYM.y, nowYM.m, 0);
@@ -113,6 +96,7 @@ export default {
 </script>
 
 <style>
-	.header{position: fixed;left: 5px;width: 100%;background: #fff;z-index: 10;}
+	.header{position: fixed;left: 155px; right: 5px;background: #fff;z-index: 10;}
 	.menu.el-menu--horizontal>.el-submenu .el-submenu__title {height: 40px;line-height: 40px;}
+	.no-margin .el-form-item--mini.el-form-item{margin-bottom: 0;}
 </style>

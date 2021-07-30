@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
 		<h-eard @setDate="date_=$event">
 			<el-form-item>
 				<el-switch size="mini"
@@ -211,7 +211,7 @@ export default {
 			let list = [];
 			for(let index in this.dbDatas) {
 				let user = this.dbDatas[index];
-				if(!user.isJob) continue;
+				if(!user.isJob && !this.isNightMode) continue;
 				let obj = {
 					_id:user._id,
 					name:user.name,
@@ -348,7 +348,6 @@ export default {
 <style scoped>
   td.pb-val:hover {cursor: pointer;background: #03A9F4!important;color: #fff;}
   .pb-list .el-radio {margin-right: 20px;margin-bottom: 20px;margin-left: 0!important;width: 80px;}
-  .header{position: fixed;left: 5px;width: 100%;background: #fff;z-index: 10;padding-top: 5px;margin-top: -5px;}
   .content{padding-top: 39px;}
   .dialog-pb .el-dialog__body {padding: 5px 20px;padding-bottom: 0;}
   .dialog-pb .el-dialog__footer {padding-top: 0;padding-bottom: 10px;}
